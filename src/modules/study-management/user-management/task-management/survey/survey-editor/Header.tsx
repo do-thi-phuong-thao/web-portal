@@ -99,6 +99,7 @@ const LastUpdateText = styled.div`
 `;
 
 interface HeaderProps {
+  onSave?: () => void;
   onPublish: () => void;
   onPreview: () => void;
   savedOn?: number;
@@ -110,6 +111,7 @@ interface HeaderProps {
 }
 
 const Header: FC<HeaderProps> = ({
+  onSave,
   onPublish,
   onPreview,
   savedOn,
@@ -166,24 +168,13 @@ const Header: FC<HeaderProps> = ({
           <GoBackHeader title={backTitle} />
           <RightSide>
             <Messages>{renderMessages()}</Messages>
-            {showPreview && (
-              <Button
-                data-testid="editor-header-preview"
-                fill="text"
-                double="left"
-                width={110}
-                onClick={onPreview}
-              >
-                Preview
-              </Button>
-            )}
             <Button
-              data-testid="editor-header-publish"
+              data-testid="editor-header-save"
               fill="solid"
               width={164}
-              onClick={onPublish}
+              onClick={onSave}
             >
-              Publish
+              Save
             </Button>
           </RightSide>
         </TopSection>

@@ -313,10 +313,6 @@ const QuestionEditorGroup = <D extends EditorItem, S extends EditorSection<D>>({
   const menuOptions = useMemo(
     () =>
       [
-        !!onSectionDuplicate && { label: 'Duplicate section', value: MenuOptions.Duplicate },
-        !!onRequestSectionReorder && { label: 'Reorder sections', value: MenuOptions.Reorder },
-        !!currentSectionPosition &&
-          !!onSectionMerge && { label: 'Merge to section above', value: MenuOptions.Merge },
         !!onRequestSectionRemove && { label: 'Delete section', value: MenuOptions.Delete },
       ].filter(Boolean) as SectionDropDownMenuOption<MenuOptions>[],
     [

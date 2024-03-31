@@ -145,6 +145,7 @@ const Editor = <D extends EditorItem, S extends EditorSection<D>>({
       <ContentContainer $previewOpened={preview.isOpened}>
         <Header
           backTitle={backTitle}
+          onSave={() => {console.info("Call API Create new survey")}}
           onPublish={publish.open}
           onPreview={preview.open}
           showPreview={!preview.isOpened}

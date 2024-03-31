@@ -230,7 +230,7 @@ const QuestionCard = forwardRef(
     const handleTypeChange = (type: QuestionType) =>
       onUpdateQuestionType?.({ id: question.id, type });
 
-    const handleQuestionCopy = () => onCopy?.(question);
+    // const handleQuestionCopy = () => onCopy?.(question);
     const handleQuestionRemove = () => onRemove?.(question);
 
     const isDescriptionReadonly = question.type === 'images';
@@ -251,7 +251,6 @@ const QuestionCard = forwardRef(
       >
         <HeaderContainer>
           <QuestionNumber>Question {index + 1}</QuestionNumber>
-          <ChangeSkipLogicButton question={question} />
         </HeaderContainer>
         <MainInformation>
           <TitleContainer>
@@ -340,14 +339,14 @@ const QuestionCard = forwardRef(
               aria-label="Delete Question"
               rippleOff
             />
-            <StyledButton
+            {/* <StyledButton
               onClick={handleQuestionCopy}
               fill="text"
               icon={<CopyIcon />}
               rate="icon"
               aria-label="Copy Question"
               rippleOff
-            />
+            /> */}
           </CardActions>
         </Footer>
       </Container>

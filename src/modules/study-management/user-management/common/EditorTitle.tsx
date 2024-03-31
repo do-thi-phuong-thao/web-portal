@@ -111,8 +111,10 @@ const EditorTitleLoading = ({ pressLeft }: EditorTitleLoadingProps) => (
 type EditorTitleChangeListener = (evt: ChangeEvent<HTMLInputElement>) => void;
 
 interface EditorTitleProps {
+  id?: string;
   title: string;
   description: string;
+  onChangeId?: EditorTitleChangeListener;
   onChangeTitle?: EditorTitleChangeListener;
   onChangeDescription: EditorTitleChangeListener;
   error?: boolean;
@@ -125,11 +127,13 @@ interface EditorTitleProps {
 
 const MAX_TITLE_LENGTH = 90;
 const MAX_DESCRIPTION_LENGTH = 120;
+export const SURVEY_ID = 'survey-id';
 export const SURVEY_TITLE_DATA_ID = 'survey-title';
 
 const EditorTitle: FC<EditorTitleProps> = ({
   title,
   description,
+  onChangeId,
   onChangeTitle,
   onChangeDescription,
   error,
@@ -141,6 +145,31 @@ const EditorTitle: FC<EditorTitleProps> = ({
 }) => (
   <EditorTitleContainer>
     {loading && <EditorTitleLoading pressLeft={!onChangeTitle} />}
+    {onChangeId ? (
+      <LimitsCounter current={title.length} max={MAX_TITLE_LENGTH} error={error}>
+        <EditorTitleTextField
+          data-id={SURVEY_ID}
+          lighten
+          type="text"
+          placeholder={!loading ? 'Enter survey id*' : ''}
+          value={title}
+          onChange={onChangeId}
+          error={error}
+          disabled={loading || disableInput}
+          aria-label="Survey ID"
+          max={MAX_TITLE_LENGTH}
+        />
+      </LimitsCounter>
+    ) : (
+      <TitleContainer>
+        <Title>{title}</Title>
+        {!loading && titleTooltip && (
+          <StyledTooltip content={titleTooltip} position="r" trigger="hover" arrow>
+            <InfoIconStyled />
+          </StyledTooltip>
+        )}
+      </TitleContainer>
+    )}
     {onChangeTitle ? (
       <LimitsCounter current={title.length} max={MAX_TITLE_LENGTH} error={error}>
         <EditorTitleTextField

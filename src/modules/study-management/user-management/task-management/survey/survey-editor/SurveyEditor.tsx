@@ -345,9 +345,11 @@ const SurveyEditor = () => {
         checkIfShowMergeConfirmNeeds={checkIfShowMergeConfirmNeeds}
         renderHeadEditor={() => (
           <EditorTitle
+            id={survey.id}
             title={survey.title}
             description={survey.description}
             descriptionPlaceholder="Add survey description (optional)"
+            onChangeId={(evt) => updateSurvey({ id: evt.target.value })}
             onChangeTitle={(evt) => updateSurvey({ title: evt.target.value })}
             onChangeDescription={(evt) => updateSurvey({ description: evt.target.value })}
             error={surveyErrors?.title.empty}
