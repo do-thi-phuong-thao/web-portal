@@ -116,6 +116,7 @@ const SurveyEditor = () => {
     loadSurvey,
     savedOn,
     validateSurvey,
+    createNewSurvey,
     saveSurvey,
     isFailedConnection,
     isSaving,
@@ -199,44 +200,45 @@ const SurveyEditor = () => {
 
   const layoutContentRef = useLayoutContentRef();
 
+  //function to save survey
   const handleSaveSurvey = useCallback(() => {
     const errors = validateSurvey();
 
     if (!hasSomeSurveyErrors(errors)) {
-      saveSurvey();
+      createNewSurvey();
     }
-  }, [saveSurvey, validateSurvey]);
+  }, [createNewSurvey, validateSurvey]);
 
-  const showOfflineSnackbar = useCallback(() => {
-    showSnackbar({
-      id: 'survey-editor-unsafe-changes-error',
-      text: 'This page has unsaved changes. Please try again.',
-      duration: 0,
-      actionLabel: 'retry',
-      showCloseIcon: true,
-      showErrorIcon: true,
-      onAction: (settings) => {
-        settings.hideAfterCall = false;
-        handleSaveSurvey();
-      },
-    });
-  }, [handleSaveSurvey, showSnackbar]);
+  // const showOfflineSnackbar = useCallback(() => {
+  //   showSnackbar({
+  //     id: 'survey-editor-unsafe-changes-error',
+  //     text: 'This page has unsaved changes. Please try again.',
+  //     duration: 0,
+  //     actionLabel: 'retry',
+  //     showCloseIcon: true,
+  //     showErrorIcon: true,
+  //     onAction: (settings) => {
+  //       settings.hideAfterCall = false;
+  //       handleSaveSurvey();
+  //     },
+  //   });
+  // }, [handleSaveSurvey, showSnackbar]);
 
-  useUpdateEffect(() => {
-    if (!lastTouchedOn || isSaving || !isFailedConnection) {
-      return;
-    }
+  // useUpdateEffect(() => {
+  //   if (!lastTouchedOn || isSaving || !isFailedConnection) {
+  //     return;
+  //   }
 
-    if (networkState.online) {
-      handleSaveSurvey();
-    }
-  }, [networkState.online]);
+  //   if (networkState.online) {
+  //     handleSaveSurvey();
+  //   }
+  // }, [networkState.online]);
 
-  useUpdateEffect(() => {
-    if (isFailedConnection && !isSaving) {
-      showOfflineSnackbar();
-    }
-  }, [isSaving]);
+  // useUpdateEffect(() => {
+  //   if (isFailedConnection && !isSaving) {
+  //     showOfflineSnackbar();
+  //   }
+  // }, [isSaving]);
 
   const prevIsFailedConnection = usePrevious(isFailedConnection);
 
@@ -334,6 +336,7 @@ const SurveyEditor = () => {
     <>
       <Editor
         shouldPreviewOpen={shouldPreviewOpen}
+        onSave={handleSaveSurvey}
         hasSavingError={hasSavingError}
         savedOn={savedOn}
         isSaving={isSaving}

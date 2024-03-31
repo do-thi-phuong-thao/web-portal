@@ -70,6 +70,7 @@ const usePublish = (shouldPublish: () => boolean) => {
 
 type EditorProps<D extends EditorItem, S extends EditorSection<D>> = {
   hasSavingError: boolean;
+  onSave?: () => void;
   onRequestSavingErrorExit: () => void;
   savedOn?: Timestamp;
   isSaving?: boolean;
@@ -94,6 +95,7 @@ type EditorProps<D extends EditorItem, S extends EditorSection<D>> = {
 
 const Editor = <D extends EditorItem, S extends EditorSection<D>>({
   hasSavingError,
+  onSave,
   onRequestSavingErrorExit,
   savedOn,
   isSaving,
@@ -145,7 +147,7 @@ const Editor = <D extends EditorItem, S extends EditorSection<D>>({
       <ContentContainer $previewOpened={preview.isOpened}>
         <Header
           backTitle={backTitle}
-          onSave={() => {console.info("Call API Create new survey")}}
+          onSave={onSave}
           onPublish={publish.open}
           onPreview={preview.open}
           showPreview={!preview.isOpened}

@@ -18,7 +18,7 @@ import API, {
   TaskItemType,
   TaskUpdate,
 } from 'src/modules/api';
-import { Task, TaskItem } from 'src/modules/api/models/tasks';
+import { Survey, Task, TaskItem } from 'src/modules/api/models/tasks';
 import { Path } from 'src/modules/navigation/store';
 import { showSnackbar } from 'src/modules/snackbar/snackbar.slice';
 import { AppThunk, RootState, useAppDispatch, useAppSelector } from 'src/modules/store';
@@ -72,6 +72,9 @@ export type {
 const SURVEY_TITLE_DEFAULT = 'Survey Title';
 
 API.mock.provideEndpoints({
+  createSurvey() {
+    return API.mock.response({id: 'surveyId123'});
+  },
   createTask() {
     const t: Task = {
       id: _uniqueId('task'),
@@ -462,7 +465,7 @@ export type SurveyEditorState = {
 };
 
 export const surveyEditorInitialState: SurveyEditorState = {
-  isSaving: false,
+  isSaving: false,//state for saving survey offline or online
   isLoading: false,
   isCreating: false,
 };
@@ -483,7 +486,7 @@ export const surveyEditorSlice = createSlice({
     creatingFinished: (state) => {
       state.isCreating = false;
     },
-    savingStarted: (state) => {
+    savingStarted: (state) => {//function be called to saving survey
       state.isSaving = true;
     },
     savingFinished: (
@@ -599,6 +602,130 @@ export const AUTOSAVE_DEBOUNCE_INTERVAL = 100;
 type SaveSurveyParams = { force?: boolean };
 
 let lastParallelSaveParams: SaveSurveyParams | undefined;
+
+export const surveyCreateToCallApi = (s: SurveyItem): Survey => {
+  const items: TaskItem[] = [];
+  const hasOnlyVirtualSection = s.questions.length === 1;
+
+  let sequence = 0;
+  const indexes: Record<string, number> = {};
+  const answers: Record<string, SelectableAnswer[]> = {};
+  const logic: Record<string, QuestionItemSkipLogic> = {};
+  const internalType: Record<string, QuestionType> = {};
+
+  s.questions.forEach((section) => {
+    if (!hasOnlyVirtualSection) {
+      items.push({
+        name: section.id,
+        type: 'SECTION',
+        sequence,
+        contents: {
+          title: section.title ?? '',
+        },
+      });
+
+      indexes[section.id] = sequence;
+      sequence += 1;
+    }
+
+    section.children.forEach((q) => {
+      const qh = getQuestionHandler(q.type);
+      if (!qh) {
+        console.warn(`Cannot convert to api - handled survey question ${q}`);
+      }
+
+      const item = qh?.toApi(q);
+      if (item) {
+        indexes[q.id] = sequence;
+        if ('type' in item.contents && item.contents.type === 'CHOICE') {
+          if (q.answers) {
+            answers[q.id] = q.answers as SelectableAnswer[];
+          }
+          if (q.skipLogic) {
+            logic[q.id] = q.skipLogic;
+          }
+        }
+        internalType[q.id] = q.type;
+
+        items.push({
+          ...item,
+          sequence,
+          name: q.id,
+          contents: {
+            ...item.contents,
+            properties: {
+              ...(item.contents as TaskItemQuestion).properties,
+            },
+          } as TaskItemQuestion,
+        });
+      }
+
+      sequence += 1;
+    });
+  });
+
+  const result: TaskItem[] = [];
+
+  items.forEach((item) => {
+    const skipLogic = logic[item.name]?.rules.map((r) => {
+      let goToItemSequence = -1;
+
+      if (r.destination.targetId) {
+        goToItemSequence = items.find((i) => i.name === r.destination.targetId)?.sequence ?? -1;
+      }
+
+      return {
+        condition: transformConditionsToApi(
+          internalType[item.name],
+          r.conditions,
+          item.sequence,
+          answers[item.name]
+        ),
+        goToItemSequence,
+      };
+    });
+
+    result.push({
+      ...item,
+      contents: {
+        ...item.contents,
+        properties: {
+          ...(item.contents as TaskItemQuestion).properties,
+          ...('type' in item.contents && item.contents.type === 'CHOICE' && skipLogic
+            ? { skip_logic: skipLogic }
+            : {}),
+        },
+      },
+    });
+  });
+
+  return {
+    id: 'id123',
+    status: 'DRAFT',
+    items: result
+  };
+};
+
+export const createNewSurvey =
+  (): AppThunk<Promise<void>> =>
+    async (dispatch, getState) => {
+      try {
+        dispatch(savingStarted());
+        const { survey } = getState()[surveyEditorSlice.name];
+        if (!survey) {
+          return;
+        }
+        const { studyId } = survey;
+        //call API update created survey 
+        const newSurvey = { ...surveyCreateToCallApi(survey) };
+        await API.createSurvey({ studyId }, newSurvey);
+        dispatch(savingFinished({ error: false }));
+      } catch (err) {
+        console.error(err);
+        dispatch(savingFinished({ error: true, isFailedConnection: true }));
+      }
+    };
+
 
 export const saveSurveyIfRequired =
   (params: SaveSurveyParams): AppThunk<Promise<void>> =>
@@ -1097,6 +1224,7 @@ export const useSurveyEditor = (params?: UseSurveyEditorParams) => {
     copyQuestion,
     removeQuestion,
     validateSurvey,
+    createNewSurvey,
     saveSurvey,
     isFailedConnection,
     isSaving,

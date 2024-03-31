@@ -20,6 +20,7 @@ import {
   LabVisitParticipantSuggestionResponse,
 } from './models/labVisit';
 
+export type StudyIdParams = { studyId: string };
 export type ProjectIdParams = { projectId: string };
 
 type SqlRequestParams = {
@@ -303,6 +304,13 @@ export const getEducationPublication = ({ projectId, id }: ProjectIdParams & { i
   request<void, [API.Publication]>({
     path: `/api/projects/${projectId}/education/${id}`,
   });
+
+  export const createSurvey= ({ studyId }: StudyIdParams, body: API.Survey) =>
+  request<API.Survey, API.CreateSurveyResponse>({
+    method: 'POST',
+    path: `/api/projects/${studyId}/tasks`,
+    body,
+  });  
 
 export const createTask = ({ projectId }: ProjectIdParams) =>
   request<{ type: 'SURVEY' }, API.CreateTaskResponse>({
