@@ -14,7 +14,7 @@ import Tabs from 'src/common/components/Tabs';
 import { useSurveyListData } from './surveyList.slice';
 import ActivitiesList from '../activity/ActivitiesList';
 import { useActivitiesListData } from '../activity/activitiesList.slice';
-import { createSurvey, useSurveyEditor } from './survey-editor/surveyEditor.slice';
+import { createDraftSurvey, createSurvey, useSurveyEditor } from './survey-editor/surveyEditor.slice';
 import SurveyList from './SurveyList';
 import CreateActivityTask from '../activity/CreateActivityTask';
 
@@ -83,6 +83,10 @@ const SurveyManagement = () => {
   }, [surveyFetchArgs, activitiesFetchArgs, studyId, surveyReset, activitiesReset]);
 
   const handleCreateSurveyClick = useCallback(() => {
+    dispatch(createDraftSurvey());
+  }, [dispatch]);
+
+  const handleCreateSurveyClickOriginal = useCallback(() => {
     studyId && dispatch(createSurvey({ studyId }));
   }, [studyId, dispatch]);
 

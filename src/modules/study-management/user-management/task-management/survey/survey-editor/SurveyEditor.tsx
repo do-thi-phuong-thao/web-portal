@@ -112,6 +112,7 @@ const SurveyEditor = () => {
   const {
     addQuestion,
     survey,
+    loadDraftSurvey,
     loadSurvey,
     savedOn,
     validateSurvey,
@@ -174,11 +175,27 @@ const SurveyEditor = () => {
       });
     };
 
-    studyId &&
-      pathParams.surveyId &&
-      loadSurvey({ studyId, surveyId: pathParams.surveyId, onError: onLoadError });
+    studyId && loadDraftSurvey({ studyId, onError: onLoadError });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studyId, pathParams.surveyId]);
+  }, [studyId]);
+
+  //Original: call GET created survey 
+  // useEffect(() => {
+  //   const onLoadError = () => {
+  //     showSnackbar({
+  //       text: GENERIC_SERVER_ERROR_TEXT,
+  //       duration: 0,
+  //       actionLabel: 'back',
+  //       showErrorIcon: true,
+  //       onAction: () => history.push(Path.StudyManagement),
+  //     });
+  //   };
+
+  //   studyId &&
+  //     pathParams.surveyId &&
+  //     loadSurvey({ studyId, surveyId: pathParams.surveyId, onError: onLoadError });
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [studyId, pathParams.surveyId]);
 
   const layoutContentRef = useLayoutContentRef();
 

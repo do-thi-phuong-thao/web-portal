@@ -283,6 +283,15 @@ export const surveyQuestionListFromApi = (ti: TaskItem[]): SurveySection[] => {
   return result;
 };
 
+export const surveyForDraft = (studyId: string): SurveyItem => ({
+  studyId,
+  id: '',
+  revisionId: 0,
+  title: '',
+  description: '',
+  questions: [emptySection()],
+});
+
 export const surveyFromApi = (studyId: string, t: Task): SurveyItem => ({
   studyId,
   id: t.id,
@@ -618,6 +627,7 @@ export const saveSurveyIfRequired =
     try {
       dispatch(savingStarted());
 
+      //call API update created survey => comment
       const [apiTask] = (await API.getTask({ projectId: survey.studyId, id: survey.id })).data;
       const task = { ...apiTask, ...surveyUpdateToApi(survey) };
       const res = await API.updateTask(
@@ -663,10 +673,15 @@ export const autoSaveIfRequired = (): AppThunk => (dispatch) => {
     clearTimeout(autoSaveTimeoutId);
   }
   autoSaveTimeoutId = window.setTimeout(async () => {
-    await dispatch(saveSurveyIfRequired({ force: false }));
+    await dispatch(saveSurveyIfRequired({ force: false }));//call API upate created task/survey=> comment or update
   }, AUTOSAVE_DEBOUNCE_INTERVAL);
 };
 
+export const createDraftSurvey = (): AppThunk => (dispatch) => {
+  dispatch(push(generatePath(Path.CreateSurvey)));
+};
+
+//to call API
 export const createSurvey =
   ({ studyId }: { studyId: string }): AppThunk<Promise<void>> =>
   async (dispatch) => {
@@ -739,7 +754,7 @@ const updateSurvey =
 
     dispatch(setSurvey(survey));
     dispatch(updateLastTouched());
-    dispatch(autoSaveIfRequired());
+    //dispatch(autoSaveIfRequired());
     surveyErrors &&
       dispatch(
         setSurveyErrors(
@@ -772,6 +787,31 @@ export const useSurveyEditor = (params?: UseSurveyEditorParams) => {
   const dispatch = useAppDispatch();
   const showSnack = useShowSnackbar();
 
+  const loadDraftSurvey = useCallback(
+    ({
+      studyId,
+      onError,
+    }: {
+      studyId: string;
+      onError: () => void;
+    }) => {
+      if (!isLoading) {
+        try {
+          dispatch(loadingStarted());
+          const survey = surveyForDraft(studyId);
+          dispatch(setSurvey(survey));
+          dispatch(clearSurveyTransientState());
+        } catch (err) {
+          console.error(err);
+          onError();
+        } finally {
+          dispatch(loadingFinished());
+        }
+      }
+    },
+    [dispatch, isLoading, survey?.id, survey?.studyId]
+  );
+
   const load = useCallback(
     ({
       studyId,
@@ -792,7 +832,7 @@ export const useSurveyEditor = (params?: UseSurveyEditorParams) => {
   const set = useCallback(
     (s: SurveyItem) => {
       if (!_isEqual(s, survey)) {
-        dispatch(updateSurvey(s));
+        dispatch(updateSurvey(s));//call API update created task/survey
       }
     },
     [dispatch, survey]
@@ -1044,6 +1084,7 @@ export const useSurveyEditor = (params?: UseSurveyEditorParams) => {
   return {
     survey,
     surveyErrors,
+    loadDraftSurvey,
     loadSurvey: load,
     setSurvey: set,
     isLoading,

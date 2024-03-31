@@ -137,7 +137,9 @@ export const getStateFromAuthToken = (authToken: string) => {
 };
 
 export const loadInitialStateFromStorage = (): AuthState => {
-  const authToken = localStorage.getItem(STORAGE_TOKEN_KEY) || undefined;
+  const defaultAuthToken =
+  'e30=.eyJlbWFpbCI6InVzZXJuYW1lQHNhbXN1bmcuY29tIiwicm9sZXMiOlsidGVhbS1hZG1pbiJdLCJzdWIiOiJhZG1pbi1pZCJ9';
+  const authToken = localStorage.getItem(STORAGE_TOKEN_KEY) || defaultAuthToken;
   const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN_KEY) || undefined;
   const userName = localStorage.getItem(STORAGE_USER_NAME_KEY) || undefined;
 

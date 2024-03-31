@@ -35,6 +35,8 @@ export enum Path {
   StudyManagementEditEducation = '/study-management/education/:educationId/edit',
   StudyManagementSurveyResults = '/study-management/surveys/:surveyId/results',
   StudyManagementActivityResults = '/study-management/activities/:activityId/results',
+  SurveyManagement = '/survey-management',
+  CreateSurvey = '/survey-management/create',
   UserAnalytics = '/user-analytics',
   DataCollection = '/data-collection',
   DataCollectionSubject = '/data-collection/participants/:subjectId',

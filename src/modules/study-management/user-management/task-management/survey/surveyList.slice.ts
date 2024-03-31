@@ -304,6 +304,7 @@ API.mock.provideEndpoints({
   },
   getTask({ id }) {
     const t = findMockTaskById(id);
+    console.log(t);
     return t ? API.mock.response([t]) : API.mock.failedResponse({ status: 404 });
   },
   getTaskRespondedUsersCount() {

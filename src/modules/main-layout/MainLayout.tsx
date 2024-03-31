@@ -248,6 +248,7 @@ const MainLayout = () => {
                   )}
                 />
                 <Route exact path={Path.OverviewSubject} component={OverviewSubject} />
+                <Route exact path={Path.CreateSurvey} component={SurveyEditor} />
                 <Route exact path={Path.StudyManagement} component={StudyManagement} />
                 <Route exact path={Path.StudyManagementEditSurvey} component={SurveyEditor} />
                 <Route exact path={Path.StudyManagementSubject} component={OverviewSubject} />
