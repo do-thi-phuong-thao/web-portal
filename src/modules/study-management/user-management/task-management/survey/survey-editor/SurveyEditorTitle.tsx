@@ -9,7 +9,7 @@ import Tooltip from 'src/common/components/Tooltip';
 import InfoIcon from 'src/assets/icons/info.svg';
 import withLocalDebouncedState from 'src/common/withLocalDebouncedState';
 import LimitsCounter from 'src/modules/study-management/common/LimitsCounter';
-import SurveyPublish from './SurveyPublish';
+import SurveyPublish from './survey-publish/SurveyPublish';
 
 const EditorTitleContainer = styled.div`
   display: flex;

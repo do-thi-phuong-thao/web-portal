@@ -10,14 +10,13 @@ import { colors, px, typography } from 'src/styles';
 
 import { useParticipantsTimeZones } from 'src/modules/study-management/user-management/common/participantTimezones.slice';
 import { getMaxTimezone } from 'src/modules/study-management/user-management/common/utils';
-import { DurationPeriod, ScheduleFrequency } from '../../publish-task/publishTask.slice';
-import { DEFAULT_VALID_DURATION_VALUE } from '../../publish-task/constants';
-import TimeNoLongerValid from '../../publish-task/TimeNoLongerValid';
-import Schedule from '../../publish-task/Schedule';
-import Series from '../../publish-task/Series';
-import Occurrence from '../../publish-task/Occurrence';
-import PublishBanner from '../../publish-task/PublishBanner';
-import TimeWarning from '../../publish-task/TimeWarning';
+import { DurationPeriod, ScheduleFrequency } from '../../../publish-task/publishTask.slice';
+import { DEFAULT_VALID_DURATION_VALUE } from '../../../publish-task/constants';
+import TimeNoLongerValid from '../../../publish-task/TimeNoLongerValid';
+import Schedule from '../../../publish-task/Schedule';
+import Occurrence from '../../../publish-task/Occurrence';
+import TimeWarning from '../../../publish-task/TimeWarning';
+import SurveySeries from './SurveySeries';
 
 const Container = styled.div`
   display: flex;
@@ -38,7 +37,6 @@ const SurveyPublish = ({ }) => {
     fetchArgs: !!studyId && { studyId },
   });
 
-  const [isCollapsed, toggleCollapsed] = useToggle(false);
   const [frequency, setFrequency] = useState<ScheduleFrequency>(ScheduleFrequency.ONE_TIME);
   const [startDateTime, setStartDateTime] = useState<Timestamp>(0);
   const [endDate, setEndDate] = useState<Timestamp>(0);
@@ -157,7 +155,7 @@ const SurveyPublish = ({ }) => {
       <TimeNoLongerValid open={secondsToStart < 0} onClose={updateExpiredStartDateTime} />
         <Schedule frequency={frequency} onFrequencyChange={handleFrequencyChange} />
         {frequency !== ScheduleFrequency.ONE_TIME && (
-          <Series
+          <SurveySeries
             noExpiration={noExpiration}
             startDate={startDateTime}
             endDate={endDate}
@@ -183,15 +181,6 @@ const SurveyPublish = ({ }) => {
           lateResponse={lateResponse}
           onLateResponseChange={toggleLateResponse}
           onPublishTimeClick={updateMinAllowedDateTime}
-        />
-        <PublishBanner
-          type={type}
-          frequency={frequency}
-          startDate={startDateTime}
-          endDate={endDate}
-          durationPeriodValue={durationPeriodValue}
-          durationPeriodType={durationPeriodType}
-          noExpiration={noExpiration}
         />
         <TimeWarning
           seconds={isTimeWarningHidden ? 0 : secondsToStart}
