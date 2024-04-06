@@ -5,10 +5,6 @@ export type CreateTaskResponse = {
   revisionId: number;
 };
 
-export type CreateSurveyResponse = {
-  id: string;
-};
-
 type DateString = string;
 
 type TaskStatus = 'DRAFT' | 'PUBLISHED' | 'COMPLETED' | 'STOPPED';
@@ -155,22 +151,6 @@ export type Task = {
   startTime: DateString;
   endTime?: DateString;
   validTime: number;
-  status: TaskStatus;
-  items: TaskItem[];
-};
-
-export type Survey = {
-  id: string;
-  revisionId?: number;
-  title?: string;
-  description?: string;
-  createdAt?: string;
-  publishedAt?: string | null;
-  condition?: unknown; // TODO: define proper type if required
-  schedule?: string;
-  startTime?: DateString;
-  endTime?: DateString;
-  validTime?: number;
   status: TaskStatus;
   items: TaskItem[];
 };

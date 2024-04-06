@@ -49,6 +49,7 @@ import QuestionCard, {
   QUESTION_CARD_LOADER_TITLE_WIDTH,
 } from './QuestionCard';
 import useHandleQuestionDelete from './useHandleQuestionDelete';
+import SurveyEditorTitle from './SurveyEditorTitle';
 
 const QuestionActionButton = styled(Button)`
   width: ${px(164)};
@@ -116,7 +117,7 @@ const SurveyEditor = () => {
     loadSurvey,
     savedOn,
     validateSurvey,
-    createNewSurvey,
+    create,
     saveSurvey,
     isFailedConnection,
     isSaving,
@@ -205,9 +206,9 @@ const SurveyEditor = () => {
     const errors = validateSurvey();
 
     if (!hasSomeSurveyErrors(errors)) {
-      createNewSurvey();
+      create();
     }
-  }, [createNewSurvey, validateSurvey]);
+  }, [create, validateSurvey]);
 
   // const showOfflineSnackbar = useCallback(() => {
   //   showSnackbar({
@@ -347,7 +348,7 @@ const SurveyEditor = () => {
         backTitle="TASK MANAGEMENT"
         checkIfShowMergeConfirmNeeds={checkIfShowMergeConfirmNeeds}
         renderHeadEditor={() => (
-          <EditorTitle
+          <SurveyEditorTitle
             id={survey.id}
             title={survey.title}
             description={survey.description}
@@ -392,16 +393,7 @@ const SurveyEditor = () => {
         )}
         sectionTitleTooltip="All questions in the section appear on the same page in the participant app."
         renderSectionTitle={({ current, total }) => `Section ${current} of ${total}`}
-        renderSectionHeader={({ section }) => (
-          <SectionTitle
-            placeholder="Enter section title (optional)"
-            value={section?.title || ''}
-            onChange={(evt) =>
-              section && sectionsEditor.updateSection({ ...section, title: evt.target.value })
-            }
-            maxLength={90}
-          />
-        )}
+        renderSectionHeader={({ section }) => <></>}
         renderSectionActions={({ section, ...actionsProps }) => (
           <EditorSectionActions
             {...actionsProps}

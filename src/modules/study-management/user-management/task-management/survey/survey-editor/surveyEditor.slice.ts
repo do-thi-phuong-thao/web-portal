@@ -18,7 +18,8 @@ import API, {
   TaskItemType,
   TaskUpdate,
 } from 'src/modules/api';
-import { Survey, Task, TaskItem } from 'src/modules/api/models/tasks';
+import {  Task, TaskItem } from 'src/modules/api/models/tasks';
+import {  Survey } from 'src/modules/api/models/surveys';
 import { Path } from 'src/modules/navigation/store';
 import { showSnackbar } from 'src/modules/snackbar/snackbar.slice';
 import { AppThunk, RootState, useAppDispatch, useAppSelector } from 'src/modules/store';
@@ -56,6 +57,12 @@ import type { SkipLogicDestinationTargetType, SkipLogicRule } from './skip-logic
 import { transformConditionsToApi, transformConditionsFromApi } from './skip-logic/api';
 import { QuestionItemSkipLogic } from './skip-logic/types';
 
+//START: constant
+const SURVEY_TITLE_DEFAULT = 'Survey Title';
+export const MIN_SURVEY_SECTIONS = 2;
+//END: constant
+
+//START: types, interface, model
 export type {
   QuestionItem,
   QuestionType,
@@ -69,8 +76,36 @@ export type {
   DateTimeAnswer,
 };
 
-const SURVEY_TITLE_DEFAULT = 'Survey Title';
+export interface SurveySection {
+  id: string;
+  title?: string;
+  children: QuestionItem[];
+}
 
+export interface SurveyItem {
+  studyId: string;
+  id: string;
+  revisionId: number;
+  title: string;
+  description: string;
+  questions: SurveySection[];
+}
+
+export type SurveyQuestionErrors = {
+  id: string;
+  title: { empty?: boolean };
+};
+
+export type SurveyErrors = {
+  title: { empty?: boolean };
+  questions: SurveyQuestionErrors[];
+};
+
+type SurveyInputEntriesIndexes = Record<number, [TaskItemType, string]>;
+//END: types, interface, model
+
+
+//START: mock APIs
 API.mock.provideEndpoints({
   createSurvey() {
     return API.mock.response({id: 'surveyId123'});
@@ -102,16 +137,10 @@ API.mock.provideEndpoints({
     return API.mock.response(undefined);
   },
 });
+//END: mock APIs
 
+//START: transform data, generate default data
 export const newId = (): string => _uniqueId('survey');
-
-export const MIN_SURVEY_SECTIONS = 2;
-
-export interface SurveySection {
-  id: string;
-  title?: string;
-  children: QuestionItem[];
-}
 
 const emptySection = (s?: Partial<SurveySection>): SurveySection => ({
   id: newId(),
@@ -119,31 +148,10 @@ const emptySection = (s?: Partial<SurveySection>): SurveySection => ({
   ...s,
 });
 
-export interface SurveyItem {
-  studyId: string;
-  id: string;
-  revisionId: number;
-  title: string;
-  description: string;
-  questions: SurveySection[];
-}
-
-export type SurveyQuestionErrors = {
-  id: string;
-  title: { empty?: boolean };
-};
-
-export type SurveyErrors = {
-  title: { empty?: boolean };
-  questions: SurveyQuestionErrors[];
-};
-
 export const emptyQuestion = (q?: Partial<SingleSelectionQuestionItem>) => ({
   ...questionHandlers.single.createEmpty(),
   ...q,
 });
-
-type SurveyInputEntriesIndexes = Record<number, [TaskItemType, string]>;
 
 export const surveyQuestionFromApi = (
   ti: TaskItem,
@@ -408,6 +416,18 @@ export const surveyUpdateToApi = (s: SurveyItem): TaskUpdate => {
   };
 };
 
+
+const transformSurveyListItemToSurveyItem = (i: SurveyListItem): SurveyItem => ({
+  studyId: '',
+  id: '',
+  revisionId: !_isUndefined(i.revisionId) ? i.revisionId : -1,
+  title: i.title || '',
+  description: i.description || '',
+  questions: [],
+});
+//END: transform data, generate/init default data
+
+//START: validate data
 export const getSurveyErrors = ({
   survey: s,
   currentErrors: cur,
@@ -451,7 +471,9 @@ export const hasSurveyQuestionErrors = (qe: SurveyQuestionErrors) => !!qe.title.
 
 export const hasSomeSurveyErrors = (se: SurveyErrors) =>
   hasSurveyTitleErrors(se) || se.questions.some(hasSurveyQuestionErrors);
-
+//END: validate data 
+ 
+//START: redux slice
 export type SurveyEditorState = {
   isSaving: boolean;
   isLoading: boolean;
@@ -532,7 +554,9 @@ export const {
   updateLastTouched,
   reset,
 } = surveyEditorSlice.actions;
+//END: redux slice
 
+//START: CRUD Survey (connect to API)
 export const loadSurvey =
   ({
     studyId,
@@ -558,15 +582,6 @@ export const loadSurvey =
       dispatch(loadingFinished());
     }
   };
-
-const transformSurveyListItemToSurveyItem = (i: SurveyListItem): SurveyItem => ({
-  studyId: '',
-  id: '',
-  revisionId: !_isUndefined(i.revisionId) ? i.revisionId : -1,
-  title: i.title || '',
-  description: i.description || '',
-  questions: [],
-});
 
 export const openSurveyResults =
   ({ surveyId }: { surveyId: string }): AppThunk<Promise<void>> =>
@@ -603,15 +618,12 @@ type SaveSurveyParams = { force?: boolean };
 
 let lastParallelSaveParams: SaveSurveyParams | undefined;
 
-export const surveyCreateToCallApi = (s: SurveyItem): Survey => {
+export const transformSurveyToCreateApi = (s: SurveyItem): Survey => {
   const items: TaskItem[] = [];
   const hasOnlyVirtualSection = s.questions.length === 1;
 
   let sequence = 0;
   const indexes: Record<string, number> = {};
-  const answers: Record<string, SelectableAnswer[]> = {};
-  const logic: Record<string, QuestionItemSkipLogic> = {};
-  const internalType: Record<string, QuestionType> = {};
 
   s.questions.forEach((section) => {
     if (!hasOnlyVirtualSection) {
@@ -636,17 +648,6 @@ export const surveyCreateToCallApi = (s: SurveyItem): Survey => {
 
       const item = qh?.toApi(q);
       if (item) {
-        indexes[q.id] = sequence;
-        if ('type' in item.contents && item.contents.type === 'CHOICE') {
-          if (q.answers) {
-            answers[q.id] = q.answers as SelectableAnswer[];
-          }
-          if (q.skipLogic) {
-            logic[q.id] = q.skipLogic;
-          }
-        }
-        internalType[q.id] = q.type;
-
         items.push({
           ...item,
           sequence,
@@ -666,43 +667,11 @@ export const surveyCreateToCallApi = (s: SurveyItem): Survey => {
 
   const result: TaskItem[] = [];
 
-  items.forEach((item) => {
-    const skipLogic = logic[item.name]?.rules.map((r) => {
-      let goToItemSequence = -1;
-
-      if (r.destination.targetId) {
-        goToItemSequence = items.find((i) => i.name === r.destination.targetId)?.sequence ?? -1;
-      }
-
-      return {
-        condition: transformConditionsToApi(
-          internalType[item.name],
-          r.conditions,
-          item.sequence,
-          answers[item.name]
-        ),
-        goToItemSequence,
-      };
-    });
-
-    result.push({
-      ...item,
-      contents: {
-        ...item.contents,
-        properties: {
-          ...(item.contents as TaskItemQuestion).properties,
-          ...('type' in item.contents && item.contents.type === 'CHOICE' && skipLogic
-            ? { skip_logic: skipLogic }
-            : {}),
-        },
-      },
-    });
-  });
-
   return {
-    id: 'id123',
-    status: 'DRAFT',
-    items: result
+    id: s.id,
+    type: 'survey',
+    status: 'PUBLISHED',
+    taks: undefined
   };
 };
 
@@ -717,7 +686,7 @@ export const createNewSurvey =
         }
         const { studyId } = survey;
         //call API update created survey 
-        const newSurvey = { ...surveyCreateToCallApi(survey) };
+        const newSurvey = { ...transformSurveyToCreateApi(survey) };
         await API.createSurvey({ studyId }, newSurvey);
         dispatch(savingFinished({ error: false }));
       } catch (err) {
@@ -808,7 +777,6 @@ export const createDraftSurvey = (): AppThunk => (dispatch) => {
   dispatch(push(generatePath(Path.CreateSurvey)));
 };
 
-//to call API
 export const createSurvey =
   ({ studyId }: { studyId: string }): AppThunk<Promise<void>> =>
   async (dispatch) => {
@@ -898,7 +866,9 @@ const ADD_SECTION_MESSAGE = 'New section(s) were created to avoid potential disp
 type UseSurveyEditorParams = {
   canRecalculateSections?: (sections: SurveySection[]) => boolean;
 };
+//END: CRUD Survey (connect to API)
 
+//START: useSurveyEditor hook
 export const useSurveyEditor = (params?: UseSurveyEditorParams) => {
   const { canRecalculateSections } = params || {};
 
@@ -954,6 +924,13 @@ export const useSurveyEditor = (params?: UseSurveyEditorParams) => {
       }
     },
     [dispatch, isLoading, survey?.id, survey?.studyId]
+  );
+
+  const create = useCallback(
+    () => {
+      dispatch(createNewSurvey());
+    },
+    [dispatch]
   );
 
   const set = useCallback(
@@ -1224,7 +1201,7 @@ export const useSurveyEditor = (params?: UseSurveyEditorParams) => {
     copyQuestion,
     removeQuestion,
     validateSurvey,
-    createNewSurvey,
+    create,
     saveSurvey,
     isFailedConnection,
     isSaving,
@@ -1238,6 +1215,7 @@ export const useSurveyEditor = (params?: UseSurveyEditorParams) => {
     reset: resetAll,
   };
 };
+//END: useSurveyEditor hook
 
 export default {
   [surveyEditorSlice.name]: surveyEditorSlice.reducer,

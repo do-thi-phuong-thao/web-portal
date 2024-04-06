@@ -8,3 +8,6 @@ https://github.com/typicode/husky/issues/1014
 - 
 https://stackoverflow.com/questions/57016727/eslint-precommit-husky-hook-is-not-working-as-expected-in-create-react-app-proje
 https://stackoverflow.com/questions/70753735/husky-pre-commit-doesnt-fire-in-create-react-app
+
+2) Trace Edit Activity Task
+src\modules\study-management\user-management\task-management\activity\activity-editor\ActivityCard.tsx

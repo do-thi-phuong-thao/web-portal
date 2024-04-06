@@ -9,6 +9,7 @@ import Tooltip from 'src/common/components/Tooltip';
 import InfoIcon from 'src/assets/icons/info.svg';
 import withLocalDebouncedState from 'src/common/withLocalDebouncedState';
 import LimitsCounter from 'src/modules/study-management/common/LimitsCounter';
+import SurveyPublish from './SurveyPublish';
 
 const EditorTitleContainer = styled.div`
   display: flex;
@@ -132,7 +133,7 @@ const MAX_DESCRIPTION_LENGTH = 120;
 export const SURVEY_ID = 'survey-id';
 export const SURVEY_TITLE_DATA_ID = 'survey-title';
 
-const EditorTitle: FC<EditorTitleProps> = ({
+const SurveyEditorTitle: FC<EditorTitleProps> = ({
   id,
   title,
   description,
@@ -217,7 +218,8 @@ const EditorTitle: FC<EditorTitleProps> = ({
         max={maxDescriptionLength || MAX_DESCRIPTION_LENGTH}
       />
     </LimitsCounter>
+    <SurveyPublish />
   </EditorTitleContainer>
 );
 
-export default EditorTitle;
+export default SurveyEditorTitle;
